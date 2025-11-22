@@ -1,0 +1,6 @@
+{
+  "plugin-data": {
+    "name": "Auteur Éditable (sélection)",
+    "description": "Rend le champ auteur éditable avec autocomplétion sur les utilisateurs existants."
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "author": "elig-45",
+  "email": "",
+  "website": "",
+  "version": "1.0.0",
+  "releaseDate": "2025-11-23",
+  "license": "MIT",
+  "compatible": "3.0",
+  "notes": "Bludit plugin to make the author field editable with autocomplete on existing users."
+}

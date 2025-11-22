@@ -1,0 +1,6 @@
+{
+  "plugin-data": {
+    "name": "Editable Author Select",
+    "description": "Make the author field editable with autocomplete on existing users."
+  }
+}
