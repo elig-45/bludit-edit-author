@@ -3,7 +3,7 @@
 ![Version](https://img.shields.io/badge/version-1.0.0-blue)
 ![Bludit](https://img.shields.io/badge/Bludit-3.x-0d6efd)
 ![PHP](https://img.shields.io/badge/PHP-7.4%2B-777bb3)
-![License](https://img.shields.io/badge/license-MIT-brightgreen)
+[![License](https://img.shields.io/badge/License-GPLv3-brightgreen)](https://www.gnu.org/licenses/gpl-3.0)
 
 Make the author field editable in the Bludit admin and add autocomplete on existing users. The plugin safely updates the `username` field for pages when an admin changes the author.
 
