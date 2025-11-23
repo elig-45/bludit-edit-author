@@ -1,7 +1,7 @@
 <?php
 /**
  * Plugin: Editable Author Select
- * Description: Make the author field editable with autocomplete on existing users.
+ * Description: Make the author field editable with a select2 dropdown on existing users.
  * Author: elig-45
  * License: MIT
  */
@@ -34,17 +34,26 @@ class EditableAuthorSelect extends Plugin
             $jsonAuthors = '[]';
         }
 
+        // Localized strings (English default, French override).
+        $labelText = 'Author';
+        $placeholderText = 'Start typing an author...';
+        $chooseText = 'Choose an author...';
+        global $site;
+        $langCode = (isset($site) && is_object($site) && method_exists($site, 'language')) ? (string) $site->language() : '';
+        if (stripos($langCode, 'fr') === 0) {
+            $labelText = 'Auteur';
+            $placeholderText = 'Commencez à taper un auteur...';
+            $chooseText = 'Choisissez un auteur...';
+        }
+
         $script = <<<'HTML'
 <script>
 /* EditableAuthorSelect */
 (function() {
   var authors = __AUTHORS__;
-
-  function log(msg) {
-    if (console && console.log) {
-      console.log('[EditableAuthorSelect]', msg);
-    }
-  }
+  var labelText = "__LABEL_TEXT__";
+  var placeholderText = "__PLACEHOLDER_TEXT__";
+  var chooseText = "__CHOOSE_TEXT__";
 
   function buildLabel(author) {
     var full = ((author.firstName || '') + ' ' + (author.lastName || '')).trim();
@@ -83,13 +92,13 @@ class EditableAuthorSelect extends Plugin
     var current = input.value || '';
     var normalized = normalizeAuthors(authors);
 
-    // Clear the group and rebuild it to avoid dealing with the disabled input.
+    // Rebuild the block to replace the disabled input.
     group.innerHTML = '';
 
     var label = document.createElement('label');
     label.className = 'mt-4 mb-2 pb-2 border-bottom text-uppercase w-100';
     label.setAttribute('for', 'jsusername-select');
-    label.textContent = 'Auteur';
+    label.textContent = labelText;
     group.appendChild(label);
 
     var hidden = document.createElement('input');
@@ -112,17 +121,18 @@ class EditableAuthorSelect extends Plugin
         theme: 'bootstrap4',
         tags: false,
         allowClear: true,
-        placeholder: 'Commencez à taper un auteur...',
+        placeholder: placeholderText,
         minimumInputLength: 0,
         width: '100%',
         templateResult: function (d) { return d.text; },
         templateSelection: function (d) { return d.text || d.id; }
       });
 
-      // Preserve existing value if any.
       if (current) {
         var exists = normalized.some(function (d) { return d.id === current; });
-        $select.val(current).trigger('change');
+        if (exists) {
+          $select.val(current).trigger('change');
+        }
       }
 
       $select.on('change', function () {
@@ -137,10 +147,9 @@ class EditableAuthorSelect extends Plugin
         }
       });
     } else {
-      // Plain select fallback.
       var placeholder = document.createElement('option');
       placeholder.value = '';
-      placeholder.textContent = 'Choisissez un auteur...';
+      placeholder.textContent = chooseText;
       placeholder.disabled = true;
       placeholder.selected = !(current || '');
       select.appendChild(placeholder);
@@ -157,7 +166,6 @@ class EditableAuthorSelect extends Plugin
       });
     }
 
-    log('author select initialized');
     return true;
   }
 
@@ -175,19 +183,14 @@ class EditableAuthorSelect extends Plugin
 </script>
 HTML;
 
-        global $site;
-        $apiToken = '';
-        if (isset($site) && is_object($site) && method_exists($site, 'apiToken')) {
-            $apiToken = (string) $site->apiToken();
-        }
-        $apiUrl = '';
-        if (!empty($apiToken) && defined('DOMAIN')) {
-            $apiUrl = rtrim(DOMAIN, '/') . '/api/users?token=' . $apiToken;
-        }
+        $replacements = array(
+            '__AUTHORS__' => $jsonAuthors,
+            '__LABEL_TEXT__' => htmlspecialchars($labelText, ENT_QUOTES, 'UTF-8'),
+            '__PLACEHOLDER_TEXT__' => htmlspecialchars($placeholderText, ENT_QUOTES, 'UTF-8'),
+            '__CHOOSE_TEXT__' => htmlspecialchars($chooseText, ENT_QUOTES, 'UTF-8'),
+        );
 
-        $script = str_replace('__AUTHORS__', $jsonAuthors, $script);
-
-        return $script;
+        return strtr($script, $replacements);
     }
 
     /**
@@ -217,7 +220,7 @@ HTML;
      */
     private function setAuthorFromPost($key)
     {
-        global $pages, $login;
+        global $pages, $login, $users;
 
         if (self::$editing) {
             return;
@@ -233,6 +236,10 @@ HTML;
 
         $newUsername = trim($_POST['username']);
         if ($newUsername === '') {
+            return;
+        }
+
+        if (!isset($users) || !is_object($users) || $users->get($newUsername) === false) {
             return;
         }
 
