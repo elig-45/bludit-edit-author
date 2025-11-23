@@ -6,13 +6,12 @@
 [![License](https://img.shields.io/badge/License-GPLv3-brightgreen)](https://www.gnu.org/licenses/gpl-3.0)
 ![Release](https://img.shields.io/github/v/release/elig-45/bludit-edit-author)
 
-
 Make the author field editable in the Bludit admin and replace it with a select2 dropdown of existing users (first/last name + nickname). The plugin safely updates the `username` field for pages when an admin changes the author.
 
 ## Features
 
 - Make the author field editable in the Bludit admin.
-- Dropdown/search on existing users (first name + last name + nickname).
+- Dropdown/search on existing users (first name + last name + nickname). UI text is English by default, with French translation when the site language is French.
 - Safely updates the page author (`username` field) after create/modify.
 - Admin-only author changes.
 
