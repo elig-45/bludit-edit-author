@@ -7,12 +7,12 @@
 ![Release](https://img.shields.io/github/v/release/elig-45/bludit-edit-author)
 
 
-Make the author field editable in the Bludit admin and add autocomplete on existing users. The plugin safely updates the `username` field for pages when an admin changes the author.
+Make the author field editable in the Bludit admin and replace it with a select2 dropdown of existing users (first/last name + nickname). The plugin safely updates the `username` field for pages when an admin changes the author.
 
 ## Features
 
 - Make the author field editable in the Bludit admin.
-- Autocomplete on existing users (username + nickname).
+- Dropdown/search on existing users (first name + last name + nickname).
 - Safely updates the page author (`username` field) after create/modify.
 - Admin-only author changes.
 
@@ -31,15 +31,15 @@ Make the author field editable in the Bludit admin and add autocomplete on exist
 ## Usage
 
 - Open any page (new or existing) in the Bludit admin.
-- The "Author" field will now be editable (not greyed out anymore).
-- Start typing: you will see autocomplete suggestions based on existing users.
+- The "Author" field is replaced by a select2 dropdown of existing users.
+- Start typing to search; only existing users can be selected (no custom values).
 - Select an author and save the page.
 - The page author (`username`) will be updated accordingly.
 
 ## Limitations / Notes
 
 - Only admin users are allowed to change the author.
-- If the username typed does not match an existing user, the plugin will not change the author.
+- Selection is restricted to existing users; custom author names are not accepted.
 - The plugin does not modify core files, it only uses hooks.
 
 ## Development
