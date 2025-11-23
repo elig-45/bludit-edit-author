@@ -220,7 +220,7 @@ HTML;
      */
     private function setAuthorFromPost($key)
     {
-        global $pages, $login, $users;
+        global $pages, $login;
 
         if (self::$editing) {
             return;
@@ -239,7 +239,7 @@ HTML;
             return;
         }
 
-        if (!isset($users) || !is_object($users) || $users->get($newUsername) === false) {
+        if (!$this->userExists($newUsername)) {
             return;
         }
 
@@ -256,37 +256,80 @@ HTML;
     }
 
     /**
-     * Build authors list from runtime Users or DB_USERS fallback.
+     * Check if the provided username exists in the users database.
+     *
+     * @param string $username
+     * @return bool
+     */
+    private function userExists($username)
+    {
+        if ($username === '') {
+            return false;
+        }
+
+        $dbUsers = $this->getUsersTable();
+        return isset($dbUsers[$username]);
+    }
+
+    /**
+     * Return users data from the runtime Users object or the DB file.
      *
      * @return array
      */
-    private function loadAuthors()
+    private function getUsersTable()
     {
         global $users;
 
-        $authors = array();
-
-        // Preferred source: runtime Users object (already loaded by Bludit).
         $sourceUsers = null;
-        if (isset($users) && is_object($users) && method_exists($users, 'keys') && method_exists($users, 'get')) {
+        if (isset($users) && is_object($users)) {
             $sourceUsers = $users;
         } elseif (class_exists('Users')) {
             // Fallback: instantiate a local Users object (does not emit output).
             $sourceUsers = new Users();
         }
 
-        if ($sourceUsers && method_exists($sourceUsers, 'keys') && method_exists($sourceUsers, 'get')) {
-            foreach ($sourceUsers->keys() as $username) {
-                $user = $sourceUsers->get($username);
-                if ($user === false) {
-                    continue;
+        if ($sourceUsers) {
+            if (method_exists($sourceUsers, 'getDB')) {
+                $db = $sourceUsers->getDB();
+                if (is_array($db)) {
+                    return $db;
                 }
-                $authors[] = $this->buildAuthorEntry($username, $user->firstName(), $user->lastName(), $user->nickname());
+            }
+
+            if (method_exists($sourceUsers, 'getDb')) {
+                $db = $sourceUsers->getDb();
+                if (is_array($db)) {
+                    return $db;
+                }
+            }
+
+            if (method_exists($sourceUsers, 'keys') && method_exists($sourceUsers, 'getUserDB')) {
+                $collected = array();
+                foreach ($sourceUsers->keys() as $name) {
+                    $row = $sourceUsers->getUserDB($name);
+                    if ($row !== false && is_array($row)) {
+                        $collected[$name] = $row;
+                    }
+                }
+                if (!empty($collected)) {
+                    return $collected;
+                }
             }
         }
 
-        // Last resort: read the DB file without emitting contents.
-        if (empty($authors) && defined('DB_USERS') && file_exists(DB_USERS)) {
+        return $this->readUsersDbFile();
+    }
+
+    /**
+     * Safely read the DB_USERS file to extract the raw users array.
+     *
+     * @return array
+     */
+    private function readUsersDbFile()
+    {
+        $result = array();
+
+        if (defined('DB_USERS') && file_exists(DB_USERS)) {
             $raw = @file_get_contents(DB_USERS);
             if ($raw !== false) {
                 // Strip any PHP header block if present.
@@ -299,14 +342,29 @@ HTML;
                 $raw = trim($raw);
                 $dbUsers = json_decode($raw, true);
                 if (is_array($dbUsers)) {
-                    foreach ($dbUsers as $username => $row) {
-                        $firstName = is_array($row) && isset($row['firstName']) ? $row['firstName'] : '';
-                        $lastName = is_array($row) && isset($row['lastName']) ? $row['lastName'] : '';
-                        $nickname = is_array($row) && isset($row['nickname']) ? $row['nickname'] : '';
-                        $authors[] = $this->buildAuthorEntry($username, $firstName, $lastName, $nickname);
-                    }
+                    $result = $dbUsers;
                 }
             }
+        }
+
+        return $result;
+    }
+
+    /**
+     * Build authors list from runtime Users or DB_USERS fallback.
+     *
+     * @return array
+     */
+    private function loadAuthors()
+    {
+        $authors = array();
+        $dbUsers = $this->getUsersTable();
+
+        foreach ($dbUsers as $username => $row) {
+            $firstName = is_array($row) && isset($row['firstName']) ? $row['firstName'] : '';
+            $lastName = is_array($row) && isset($row['lastName']) ? $row['lastName'] : '';
+            $nickname = is_array($row) && isset($row['nickname']) ? $row['nickname'] : '';
+            $authors[] = $this->buildAuthorEntry($username, $firstName, $lastName, $nickname);
         }
 
         return $authors;
