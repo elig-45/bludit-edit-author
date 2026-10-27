@@ -11,7 +11,7 @@ Make the author field editable in the Bludit admin and replace it with a select2
 ## Features
 
 - Make the author field editable in the Bludit admin.
-- Dropdown/search on existing users (first name + last name + nickname). UI text is English by default, with French translation when the site language is French.
+- Dropdown/search on existing users (first name + last name + nickname). UI text is English by default, with French and Russian translation when the site language is French or Russian.
 - Safely updates the page author (`username` field) after create/modify.
 - Admin-only author changes.
 
@@ -44,6 +44,7 @@ Make the author field editable in the Bludit admin and replace it with a select2
 ## Development
 
 - Author: elig-45
+- Translator: Paul Bid
 - License: MIT
 
 ## Contributing
