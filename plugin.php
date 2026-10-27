@@ -34,7 +34,7 @@ class EditableAuthorSelect extends Plugin
             $jsonAuthors = '[]';
         }
 
-        // Localized strings (English default, French override).
+        // Localized strings (English default, French or Russian override).
         $labelText = 'Author';
         $placeholderText = 'Start typing an author...';
         $chooseText = 'Choose an author...';
@@ -44,6 +44,11 @@ class EditableAuthorSelect extends Plugin
             $labelText = 'Auteur';
             $placeholderText = 'Commencez à taper un auteur...';
             $chooseText = 'Choisissez un auteur...';
+        }
+        if (stripos($langCode, 'ru') === 0) {
+            $labelText = 'Автор';
+            $placeholderText = 'Начните вводить имя автора...';
+            $chooseText = 'Выберите автора...';
         }
 
         $script = <<<'HTML'
